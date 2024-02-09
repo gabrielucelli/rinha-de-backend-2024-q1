@@ -8,13 +8,14 @@ import (
 
 var Module = fx.Provide(NewHandler)
 
-const defaultLimit = 20
-
 type Handler struct {
 	databaseConn *pgxpool.Pool
-	validate     validator.Validate
+	validate     *validator.Validate
 }
 
-func NewHandler(databaseConn *pgxpool.Pool, validate validator.Validate) Handler {
-	return Handler{databaseConn, validate}
+func NewHandler(databaseConn *pgxpool.Pool) Handler {
+	return Handler{
+		databaseConn: databaseConn,
+		validate:     validator.New(validator.WithRequiredStructEnabled()),
+	}
 }

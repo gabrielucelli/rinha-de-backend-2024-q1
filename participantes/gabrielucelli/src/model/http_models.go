@@ -37,3 +37,10 @@ type Transaction struct {
 	Description string    `json:"descricao"`
 	CreatedAt   time.Time `json:"realizada_em"`
 }
+
+type Client struct {
+	Id           int    `json:"id"`
+	Name         string `json:"name"`
+	AccountLimit int    `json:"account_limit"`
+	Balance      int    `json:"balance"`
+}

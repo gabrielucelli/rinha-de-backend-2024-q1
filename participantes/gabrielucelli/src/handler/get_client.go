@@ -3,26 +3,26 @@ package handler
 import (
 	"context"
 	"errors"
+	"gabrielucelli/rinha-backend/src/model"
 
 	"github.com/jackc/pgx/v5"
 )
 
-type Client struct {
-	Id           int
-	AccountLimit int
-	Balance      int
-}
+var cachedClients = make(map[int]*model.Client)
 
-var cachedClients = make(map[int]*Client)
+func (h *Handler) GetClient(ctx context.Context, clientId int) (*model.Client, error) {
 
-func (h *Handler) GetClient(ctx context.Context, clientId int) (*Client, error) {
 	cachedClient, ok := cachedClients[clientId]
 	if ok {
 		return cachedClient, nil
 	}
 
-	rows, _ := h.databaseConn.Query(ctx, "SELECT * FROM clients WHERE id = $1", clientId)
-	client, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[Client])
+	rows, err := h.databaseConn.Query(ctx, "SELECT * FROM clients WHERE id = $1", clientId)
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[model.Client])
 
 	if err != nil && errors.Is(err, pgx.ErrNoRows) {
 		cachedClients[client.Id] = nil
