@@ -76,7 +76,7 @@ func (h *Handler) createTransaction(ctx context.Context, clientId int, transacti
 	}
 
 	batch := &pgx.Batch{}
-	batch.Queue("INSERT INTO transactions(client_id,amount,operation,description) values ($1, $2, $3, $4)", clientId, transactionData.Amount, transactionData.Type, transactionData.Description)
+	batch.Queue("INSERT INTO transactions(client_id,value,operation,description) values ($1, $2, $3, $4)", clientId, transactionData.Amount, transactionData.Type, transactionData.Description)
 	batch.Queue("UPDATE clients SET balance = $1 WHERE id = $2", newAccountBalance, clientId)
 	br := tx.SendBatch(ctx, batch)
 	_, err = br.Exec()

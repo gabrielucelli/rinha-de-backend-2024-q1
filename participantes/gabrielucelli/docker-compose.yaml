@@ -8,7 +8,7 @@ services:
     hostname: api01
     environment:
       - APP_PORT=3001
-      - DATABASE_URL=postgres://admin:123@db:5432/rinha?pool_max_conns=10
+      - DATABASE_URL=postgres://admin:123@db:5432/rinha?pool_max_conns=100
     
     # Não é necessário expor qualquer porta além da porta do load balancer,
     # mas é comum as pessoas o fazerem para testarem suas APIs e conectarem
@@ -20,8 +20,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.6"
-          memory: "200MB"
+          cpus: "0.4"
+          memory: "100MB"
 
   api02:
     # Essa sintaxe reusa o que foi declarado em 'api01'.
@@ -29,14 +29,14 @@ services:
     hostname: api02
     environment:
       - APP_PORT=3002
-      - DATABASE_URL=postgres://admin:123@db:5432/rinha?pool_max_conns=10
+      - DATABASE_URL=postgres://admin:123@db:5432/rinha?pool_max_conns=100
     ports:
       - "3002:3002"
  
   nginx:
     image: nginx:latest
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - api01
       - api02
@@ -46,8 +46,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.17"
-          memory: "10MB"
+          cpus: "0.2"
+          memory: "30MB"
 
   db:
     image: postgres:latest
@@ -60,6 +60,7 @@ services:
       - "5432:5432"
     volumes:
       - ./script.sql:/docker-entrypoint-initdb.d/script.sql
+      - ./config/postgres.conf:/docker-entrypoint-initdb.d/postgres.conf
     deploy:
       resources:
         limits:
@@ -67,8 +68,8 @@ services:
           # aqui declarados é de 1.5 unidades de CPU e 550MB
           # de memória. A distribuição feita aqui é apenas
           # um exemplo – distribua como quiser.
-          cpus: "0.13"
-          memory: "140MB"
+          cpus: "0.5"
+          memory: "320MB"
 
 # O uso do modo `bridge` deve ser adequado à carga que será usada no teste.
 # A edição anterior se beneficiou do modo host pois o volume de requisições

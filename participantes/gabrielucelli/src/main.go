@@ -19,8 +19,10 @@ func ProvideDatabaseConn() (*pgxpool.Pool, error) {
 
 func ProvideFiberApp() *fiber.App {
 	app := fiber.New(fiber.Config{JSONEncoder: json.Marshal, JSONDecoder: json.Unmarshal})
-	app.Use(recover.New())
-	app.Use(logger.New())
+	if len(os.Getenv("DEBUG_ENABLED")) != 0 {
+		app.Use(recover.New())
+		app.Use(logger.New())
+	}
 	return app
 }
 
