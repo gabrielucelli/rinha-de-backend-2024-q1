@@ -14,11 +14,7 @@ import (
 )
 
 func ProvideDatabaseConn() (*pgxpool.Pool, error) {
-	con, err := pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
-	if err != nil {
-		return nil, err
-	}
-	return con, con.Ping(context.Background())
+	return pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
 }
 
 func ProvideFiberApp() *fiber.App {
@@ -44,7 +40,7 @@ func InitApp(lifecycle fx.Lifecycle, app *fiber.App, handler handler.Handler) {
 			OnStart: func(context.Context) error {
 				app.Post("/clientes/:id/transacoes", handler.CreateTransactionHandler)
 				app.Get("/clientes/:id/extrato", handler.GetExtractHandler)
-				go app.Listen("localhost:" + os.Getenv("APP_PORT"))
+				go app.Listen(":" + os.Getenv("APP_PORT"))
 				return nil
 			},
 			OnStop: func(context.Context) error {
