@@ -1,0 +1,14 @@
+POST http://127.0.0.1:9999/clientes/9999/transacoes HTTP/1.1
+content-type: application/json
+
+{
+    "valor": 1000,
+    "tipo" : "c",
+    "descricao" : "descricao"
+}
+
+###
+
+GET http://127.0.0.1:9999/clientes/23233/extrato HTTP/1.1
+
+###

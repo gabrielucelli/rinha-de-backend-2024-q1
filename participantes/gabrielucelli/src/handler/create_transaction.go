@@ -27,18 +27,12 @@ func (h *Handler) CreateTransactionHandler(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(422)
 	}
 
-	client, err := h.GetClient(ctx.Context(), clientId)
-	if err != nil {
-		return ctx.SendStatus(500)
-	}
-	if client == nil {
-		return ctx.SendStatus(404)
-	}
-
 	transactionResult, err := h.createTransaction(ctx.Context(), clientId, createTransactionRequest)
 	if err != nil {
 		if err.Error() == "LIMIT_EXCEEDED" {
 			return ctx.SendStatus(422)
+		} else if err.Error() == "USER_DONT_EXISTS" {
+			return ctx.SendStatus(404)
 		} else {
 			return ctx.SendStatus(500)
 		}
@@ -58,7 +52,11 @@ func (h *Handler) createTransaction(ctx context.Context, clientId int, transacti
 	var accountLimit int
 	var accountBalance int
 
-	err = tx.QueryRow(ctx, "SELECT account_limit, balance FROM clients WHERE id = $1 FOR UPDATE", clientId).Scan(&accountLimit, &accountBalance)
+	err = tx.QueryRow(ctx, "SELECT account_limit, balance FROM clients WHERE id = $1 FOR NO KEY UPDATE", clientId).Scan(&accountLimit, &accountBalance)
+	if err != nil && errors.Is(err, pgx.ErrNoRows) {
+		return model.CreateTransactionResponse{}, errors.New("USER_DONT_EXISTS")
+	}
+
 	if err != nil {
 		return model.CreateTransactionResponse{}, err
 	}
@@ -80,7 +78,6 @@ func (h *Handler) createTransaction(ctx context.Context, clientId int, transacti
 	batch.Queue("UPDATE clients SET balance = $1 WHERE id = $2", newAccountBalance, clientId)
 	br := tx.SendBatch(ctx, batch)
 	_, err = br.Exec()
-
 	if err != nil {
 		return model.CreateTransactionResponse{}, err
 	}
